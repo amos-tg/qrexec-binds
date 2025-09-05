@@ -1,0 +1,12 @@
+[package]
+name = "qrexec-binds"
+version = "0.0.1"
+edition = "2024"
+license-file = "LICENSE.md"
+homepage = "https://github.com/amos-tg/qrexec-binds"
+repository = "https://github.com/amos-tg/qrexec-binds"
+description = "Qubes OS specific qrexec-client-vm interface."
+readme = "README.md"
+
+[dependencies]
+anyhow = "1.0.99"
