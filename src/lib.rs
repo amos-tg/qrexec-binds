@@ -8,6 +8,7 @@ use std::{
         ChildStdout,
         ChildStdin,
         ChildStderr,
+        Stdio,
     },
 };
 use anyhow::anyhow;
@@ -45,6 +46,9 @@ impl Qrexec {
 
         let mut child = Command::new("qrexec-client-vm")
             .args(args)
+            .stdout(Stdio::piped())
+            .stdin(Stdio::piped())
+            .stderr(Stdio::piped())
             .spawn()?;
         return Ok(Self {
             stdout: child.stdout.take().ok_or(
