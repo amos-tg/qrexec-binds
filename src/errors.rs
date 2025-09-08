@@ -11,6 +11,15 @@ use anyhow;
 
 pub type QRXRes<T> = Result<T, QRXErr>;
 
+// ERROR Messages :  
+pub(crate) const STDOUT_ERR: &str = 
+    "Error: child proc failed to produce stdout";
+pub(crate) const STDIN_ERR: &str = 
+    "Error: child proc failed to produce stdin";
+pub(crate) const STDERR_ERR: &str =
+    "Error: child proc failed to produce stderr";
+
+
 #[derive(Debug)]
 pub enum QRXErr {
     Io(io::Error), 

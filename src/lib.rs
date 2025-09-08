@@ -1,4 +1,5 @@
 pub mod errors;
+mod header;
 
 use std::{
     io::{Write, Read, self},
@@ -37,12 +38,6 @@ impl Qrexec {
     /// Qrexec::write(&mut qrx.stdin, &[0, 1, 2])?;
     /// ```
     pub fn new(args: &[&str]) -> QRXRes<Self> {
-        const STDOUT_ERR: &str = 
-            "Error: child proc failed to produce stdout";
-        const STDIN_ERR: &str = 
-            "Error: child proc failed to produce stdin";
-        const STDERR_ERR: &str =
-            "Error: child proc failed to produce stderr";
 
         let mut child = Command::new("qrexec-client-vm")
             .args(args)
@@ -60,9 +55,6 @@ impl Qrexec {
             child,
         })
     }
-
-    // wrote these so I can put error handling in here
-    // once i test the errors that pop out. 
 
     /// returns the number of bytes read into the buffer 
     /// currently this is a direct inlined call the  
