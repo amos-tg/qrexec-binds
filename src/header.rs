@@ -1,35 +1,23 @@
-use std::ops::{Deref, DerefMut};
+//use std::ops::{Deref, DerefMut};
 
-const HEADER: [u8; 8] = [0u8; 8];  
-const HEADER_LEN: usize = HEADER.len();
+pub(crate) type Header = [u8; 8];
+pub(crate) const HEADER: Header = [0u8; 8];  
+pub(crate) const HEADER_LEN: usize = HEADER.len();
 
+pub(crate) fn header(data_buf: &[u8]) -> Header {
+    let blen = data_buf.as_ref().len();
 
-type InnerBuf<const T: usize> = [u8; T];  
+    #[cfg(target_endian="big")]
+    return blen.to_be_bytes();
 
-#[derive(Debug, Hash, PartialEq, Eq, Copy, Clone, PartialOrd, Ord)]
-pub struct WriteBuf<const T: usize>(InnerBuf<T>);
-
-impl<const T: usize> Deref for WriteBuf<T> {
-    type Target = InnerBuf<T>;
-    fn deref(&self) -> &Self::Target {
-        return &self.0;
-    }
+    #[cfg(target_endian="little")]
+    return blen.to_le_bytes();
 }
 
-impl<T> DerefMut for WriteBuf<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        return &mut self.0;
-    }
-}
+pub(crate) fn header_len(header: &Header) -> u64 {
+    #[cfg(target_endian = "big")]
+    return u64::from_be_bytes(header.clone());
 
-impl<const T: usize> WriteBuf<T> {
-    pub fn new(size: usize) -> Self {
-        todo!();
-    } 
-
-    pub fn append_head(buf: &[u8]) {
-        let blen = buf.len();
-        let header = blen.to_be_bytes();
-        todo!();
-    }
+    #[cfg(target_endian = "little")]
+    return u64::from_be_bytes(header.clone());
 }
