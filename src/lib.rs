@@ -27,11 +27,16 @@ use crate::{
 };
 
 pub trait QIO {
+    /// returns the number of bytes read into the buffer 
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize>;
+
+    /// returns the number of bytes written from the buffer.
+    /// You cannot send more data than BUF_LEN - 8 in a 
+    /// single call to this function as this would result in an  
+    /// overflow. 
     fn write(&mut self, buf: &[u8]) -> QRXRes<usize>;
 }
 
-/// returns the number of bytes read into the buffer 
 #[inline(always)]
 fn inner_read(read: &mut impl Read, buf: &mut [u8]) -> io::Result<usize> {
     let mut hbuf = [0u8; HEADER_LEN];
@@ -43,10 +48,6 @@ fn inner_read(read: &mut impl Read, buf: &mut [u8]) -> io::Result<usize> {
     return Ok(msg_len);
 } 
 
-/// returns the number of bytes written from the buffer.
-/// You cannot send more data than BUF_LEN - 8 in a 
-/// single call to this function as this would result in an  
-/// overflow. 
 #[inline(always)]
 fn inner_write<const BUF_LEN: usize>(
     wbuf: &mut [u8; BUF_LEN],
@@ -77,6 +78,7 @@ fn inner_write<const BUF_LEN: usize>(
     return Ok(total_nb);
 }
 
+#[derive(Debug)]
 pub struct QrexecServer<const BUF_LEN: usize> {
     wbuf: [u8; BUF_LEN], 
     read: Stdin,
