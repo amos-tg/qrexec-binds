@@ -152,7 +152,8 @@ impl<const BUF_LEN: usize> QrexecClient<BUF_LEN> {
             .stderr(Stdio::piped());
 
         child.args([
-            &BUF_LEN.to_string(), target_vmname, rpc_service]);
+            &format!("--buffer-size={}", &BUF_LEN.to_string()),
+            target_vmname, rpc_service]);
 
         if let Some(local_program) = local_program {
             child.arg(local_program);
