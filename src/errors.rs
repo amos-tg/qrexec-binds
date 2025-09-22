@@ -18,9 +18,6 @@ pub(crate) const STDIN_ERR: &str =
     "Error: child proc failed to produce stdin";
 pub(crate) const STDERR_ERR: &str =
     "Error: child proc failed to produce stderr";
-pub(crate) const WBUF_LEN_ERR: &str = 
-    "Error: the data buffer is too big for the write buffer \
-    size that you set";  
 
 
 #[derive(Debug)]

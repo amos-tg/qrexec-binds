@@ -34,7 +34,7 @@ pub trait QIO {
     /// You cannot send more data than BUF_LEN - 8 in a 
     /// single call to this function as this would result in an  
     /// overflow. 
-    fn write(&mut self, buf: &[u8]) -> QRXRes<usize>;
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize>;
 }
 
 #[inline(always)]
@@ -49,61 +49,40 @@ fn inner_read(read: &mut impl Read, buf: &mut [u8]) -> io::Result<usize> {
 } 
 
 #[inline(always)]
-fn inner_write<const BUF_LEN: usize>(
-    wbuf: &mut [u8; BUF_LEN],
+fn inner_write(
     written: &mut impl Write,
     data_buf: &[u8],
-) -> QRXRes<usize> {
-    let total_nb = data_buf.len() + HEADER_LEN;
-    if (total_nb) > BUF_LEN {
-        Err(anyhow!(WBUF_LEN_ERR))?;
-    } 
-
-    let mut i = 0;
+) -> io::Result<usize> {
     let header = header(data_buf);
-
-    for val in header {
-        wbuf[i] = val;
-        i += 1;
-    }
-
-    i = HEADER_LEN;
-    for val in data_buf {
-        wbuf[i] = *val;
-        i += 1;
-    }
-
-    written.write_all(&wbuf[..i])?;
-
-    return Ok(total_nb);
+    written.write_all(&header)?;
+    written.write_all(&data_buf)?;
+    return Ok(data_buf.len() + HEADER_LEN);
 }
 
 #[derive(Debug)]
-pub struct QrexecServer<const BUF_LEN: usize> {
-    wbuf: [u8; BUF_LEN], 
+pub struct QrexecServer {
     read: Stdin,
     written: Stdout,
 }
 
-impl<const BUF_LEN: usize> QIO for QrexecServer<BUF_LEN> {
+impl QIO for QrexecServer {
     #[inline(always)]
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         return inner_read(&mut self.read, buf);
     }
 
     #[inline(always)]
-    fn write(&mut self, buf: &[u8]) -> QRXRes<usize> {
-        return inner_write(&mut self.wbuf, &mut self.written, buf);
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        return inner_write(&mut self.written, buf);
     }
 }
 
-impl<const BUF_LEN: usize> QrexecServer<BUF_LEN> {
+impl QrexecServer {
     pub fn new() -> Self {
         let read = io::stdin();  
         let written = io::stdout();
-        let wbuf = [0u8; BUF_LEN];
         Self {
-            wbuf, read, written,
+            read, written,
         }
     } 
 }
@@ -116,15 +95,14 @@ impl<const BUF_LEN: usize> QrexecServer<BUF_LEN> {
 /// 8 extra bytes are taken up by the header therefore you cannot 
 /// send more data than <BUF_LEN - 8> in a single write call.  
 #[derive(Debug)]
-pub struct QrexecClient<const BUF_LEN: usize> { 
-    wbuf: [u8; BUF_LEN],
+pub struct QrexecClient { 
     pub child: Child,
     pub read: ChildStdout,
     pub written: ChildStdin,
     pub stderr: ChildStderr,
 }
 
-impl<const BUF_LEN: usize> QrexecClient<BUF_LEN> {
+impl QrexecClient {
     /// Calls qrexec-client-vm with the arguments provided through the args parameter.
     /// Arguments:
     ///
@@ -140,7 +118,7 @@ impl<const BUF_LEN: usize> QrexecClient<BUF_LEN> {
     ///
     /// local_program_args: 
     /// Arguments for the local program.
-    pub fn new(
+    pub fn new<const BUF_LEN: usize>(
         target_vmname: &str, 
         rpc_service: &str,
         local_program: Option<&str>,
@@ -166,7 +144,6 @@ impl<const BUF_LEN: usize> QrexecClient<BUF_LEN> {
         let mut child = child.spawn()?;
 
         return Ok(Self {
-            wbuf: [0u8; BUF_LEN],
             read: child.stdout.take().ok_or(
                 anyhow!(STDOUT_ERR))?,
             written: child.stdin.take().ok_or(
@@ -178,19 +155,19 @@ impl<const BUF_LEN: usize> QrexecClient<BUF_LEN> {
     }
 }
 
-impl<const BUF_LEN: usize> QIO for QrexecClient<BUF_LEN> {
+impl QIO for QrexecClient {
     #[inline(always)]
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         return inner_read(&mut self.read, buf);
     }  
 
     #[inline(always)]
-    fn write(&mut self, buf: &[u8]) -> QRXRes<usize> {
-        return inner_write(&mut self.wbuf, &mut self.written, buf);
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        return inner_write(&mut self.written, buf);
     }
 }
 
-impl<const BUF_LEN: usize> Drop for QrexecClient<BUF_LEN> { 
+impl Drop for QrexecClient { 
     fn drop(&mut self) {
         let _ = self.child.kill();   
     }
