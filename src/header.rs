@@ -19,5 +19,5 @@ pub(crate) fn header_len(header: &Header) -> usize {
     return u64::from_be_bytes(header.clone());
 
     #[cfg(target_endian = "little")]
-    return (u64::from_be_bytes(header.clone())) as usize;
+    return (u64::from_le_bytes(header.clone())) as usize;
 }
