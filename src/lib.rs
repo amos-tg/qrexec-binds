@@ -56,6 +56,7 @@ fn inner_write(
     let header = header(data_buf);
     written.write_all(&header)?;
     written.write_all(&data_buf)?;
+    written.flush()?;
     return Ok(data_buf.len() + HEADER_LEN);
 }
 
