@@ -62,8 +62,8 @@ fn inner_write(
 
 #[derive(Debug)]
 pub struct QrexecServer {
-    read: Stdin,
-    written: Stdout,
+    pub read: Stdin,
+    pub written: Stdout,
 }
 
 impl QIO for QrexecServer {
