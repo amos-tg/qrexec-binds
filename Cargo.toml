@@ -1,6 +1,6 @@
 [package]
 name = "qrexec-binds"
-version = "0.0.26"
+version = "0.0.27"
 edition = "2024"
 license-file = "LICENSE.md"
 homepage = "https://github.com/amos-tg/qrexec-binds"
